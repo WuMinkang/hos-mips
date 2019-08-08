@@ -11,6 +11,21 @@
 #include <proc.h>
 #include <thumips_tlb.h>
 #include <sched.h>
+//kyle begin
+#define WRITE_IO_CHAR(addr) (volatile unsigned char *)(addr)
+#define         OFS_SEND_BUFFER         0
+void uart_printf(char * x)
+{
+	int i = 0;
+	for(i=0; x[i]!='\0'; i++)
+	{
+		*WRITE_IO_CHAR(COM1+OFS_SEND_BUFFER) = x[i];
+		delay(1);
+	}
+}
+//kyle end
+
+
 
 void __noreturn kern_init(void)
 {
@@ -20,9 +35,7 @@ void __noreturn kern_init(void)
 	pic_init();		// init interrupt controller
 	cons_init();		// init the console
 	clock_init();		// init clock interrupt
-
 	check_initrd();
-
 	const char *message = "OS is loading ...\n\r\n\r";
 	kprintf(message);
 	print_kerninfo();
