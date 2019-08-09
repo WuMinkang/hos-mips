@@ -18,7 +18,7 @@ void delay(void)
 
 //#define DEBUG_COM1
 /***** Serial I/O code *****/
-
+//previous define begin
 #define COM_RBR         0x1000  // In:receive buffer
 #define COM_THR         0x1000  // Out:Transmitter Holding Register
 #define COM_IER         0x1004  // Out: Interrupt Enable Register
@@ -40,6 +40,7 @@ void delay(void)
 #define COM_LSR_DATA    0x01    // Data available
 #define COM_LSR_TXRDY   0x20    // Transmit buffer avail
 #define COM_LSR_TSRE    0x40    // Transmitter off
+//previous define end
 //kyle begin
 //axi4_C fpga.h begin
 #define READ_IO(addr)  (volatile unsigned int *)(addr)
@@ -230,6 +231,7 @@ static void serial_init(void)
 	*WRITE_IO_CHAR(COM1 + OFS_DATA_FORMAT) = 0x03;
 	*WRITE_IO_CHAR(COM1 + OFS_MODEM_CONTROL) = 0x3;
 	*WRITE_IO_CHAR(COM1 + OFS_INTR_ENABLE) = 0;
+	*WRITE_IO_CHAR(COM1 + OFS_INTR_ENABLE) = 0x1;
 	//kyle end
     pic_enable(COM1_IRQ);
 	//pic_enable(KEYBOARD_IRQ);
@@ -242,7 +244,9 @@ static void serial_putc_sub(int c)
     //outw(COM1 + COM_THR, c & 0xFF);
     //delay();
 	//previous putc end
+	//kyle begin
 	*WRITE_IO_CHAR(COM1+OFS_SEND_BUFFER) = c;
+	//kyle end
 }
 
 /* serial_putc - print character to serial port */
@@ -261,17 +265,25 @@ static void serial_putc(int c)
 static int serial_proc_data(void)
 {
     int c;
-
-    delay();
-    if ((inw(COM1 + COM_LSR) & COM_LSR_DATA) == 0)
+	//previous proc begin
+    //delay();
+    //if ((inw(COM1 + COM_LSR) & COM_LSR_DATA) == 0)
+    //    return -1;
+    //delay();
+    //c = inw(COM1 + COM_RBR) & 0xFF;
+    //delay();
+    //if (c == 127) {
+    //    c = '\b';
+    //}
+	//previous proc end
+	//kyle begin
+	delay();
+	if ((*READ_IO_CHAR(COM1 + OFS_LINE_STATUS) & 0x01) != 1)
         return -1;
-    delay();
-    c = inw(COM1 + COM_RBR) & 0xFF;
-    delay();
-
-    if (c == 127) {
-        c = '\b';
-    }
+	delay();
+	c = *READ_IO_CHAR(COM1 + OFS_RCV_BUFFER);
+	delay();
+	//kyle end
     return c;
 }
 
